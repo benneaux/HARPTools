@@ -1,0 +1,38 @@
+---
+title: "TestReport"
+author: "B. Moran"
+date: "31 August 2016"
+output: 
+  html_document:
+    self_contained: no
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(knitr)
+require(dplyr)
+```
+
+test table
+
+```{r sms, echo = FALSE}
+source("smsdata.r")
+sms.data <- sms
+counts <- sms.data %>% 
+  group_by(URNO, SMS_Month, SMS_Year) %>%
+  tidyr::drop_na(URNO)
+
+glimpse(counts)
+
+counts2 <- aggregate(sms.data["URNO"], by=sms.data[c("SMS_Month","SMS_Year")], FUN=length)
+
+DT::datatable(counts2)
+```
+
+```{r plot, echo = FALSE}
+counts3 <- as.ts(counts2$URNO, frequency=12, start = c(2012, 12), calendar = TRUE)
+plot.ts(counts3)
+
+ggplot2::coun
+```
