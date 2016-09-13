@@ -25,3 +25,6 @@ vignettes/*.pdf
 .Rproj.user
 Dispensing_HCV July 2016.XLS
 HBV July 2015_June 2016.XLS
+final.csv
+finalDispensing.csv
+finalReversals.csv
