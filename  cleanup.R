@@ -2,7 +2,7 @@
 
 ## Setup =======================================================================
 
-req.packages <- c("dplyr","tidyr","data.table","readxl","reshape2","stringr","lubridate")
+req.packages <- c("dplyr","tidyr","data.table","readxl","stringr","lubridate")
 
 lapply(
   req.packages,
@@ -10,19 +10,29 @@ lapply(
   character.only = TRUE,
   quietly = TRUE
   )
+rm(req.packages)
 
 ## Import ====================================
 
-file.name <- "HBV July 2015_June 2016.XLS" # name of the file in quotes
+Program <- "HCV" # i.e. HBV or HCV
+Period <- "August" # i.e. Month, FY
+
+# name of the file in quotes 
+#NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
+file.path <- "O:/HARP_Data/01 Reports/HCV/2016/HCV Treatment Dispensing/08 August/01 Data/" 
+
+file.name <- "HCV August 2016.XLS"
+full.path <- paste(file.path,file.name, sep = "")
 
 import.data <- 
   as.data.table(
     read_excel(
-      file.name,
+      full.path,
       col_names = FALSE,
       sheet = 1
       )
     )
+rm(file.name)
 
 ## Setup ================================
 
@@ -44,7 +54,7 @@ import.data <-
   
   # Removes "Dispensing Style: " rows from dataset.
   clean.data <- clean.data[!str_detect(clean.data[,1],"Dispensing Style: "),]
-  
+
   # Separate out data fields from all cols except 1.    
     temp <- clean.data %>%
       subset(select = -1)
@@ -72,21 +82,13 @@ import.data <-
     names(data.b) <- c("Prescriber","Units","Date","Cost","Code")
     
     # Removes unnescessary text from "Prescriber:"
-    data.b[,"Prescriber"] <- str_replace(
-      data.b[,"Prescriber"],
-      "Prescriber: ",
-      ""
-      )
+    data.b[,"Prescriber"] <- gsub("Prescriber: ","",data.b[,"Prescriber"])
     # Removes unnescessary text from "Date:"
-    data.b[,"Date"] <- str_replace(
-      data.b[,"Date"],
-      "Date: ",
-      ""
-    )
+    data.b[,"Date"] <- gsub("Date: ","",data.b[,"Date"])
     
   data <- clean.data
   # Clear temporary variables.
-  rm(clean.data,temp, temp.a, temp.b, junk.e, junk.s, file.name)
+  rm(clean.data, temp, temp.a, temp.b, junk.e, junk.s)
 
 ## Filter Sites =====================
   
@@ -123,6 +125,7 @@ import.data <-
   
   # The if accounts for an error that occurs when the last index = the number of
   # rows in the data.
+  
   if(length(temp)<temp.ind[length(temp.ind)]){
     temp.ind.diff[length(temp.ind.diff)+1] <- nrow(temp)-temp.ind[length(temp.ind)] + 1
   } else {
@@ -150,11 +153,9 @@ import.data <-
   # Combined field with their MRN only.
   
   #clean.data2[,1] <- gsub("999999: Mr Benjamin Moran", "999999", clean.data2[,1])
-  clean.data2[,1] <- gsub("6048086: Mr Golin Nepia", "6048086", clean.data2[,1])
   data <- clean.data2
   rm(clean.data2, temp, temp.val, temp.ind, temp.ind.diff)
   
-
 ## Filter Cost Centres ================================= 
 
   # The principles here are the same as the previous section, just accounting
@@ -183,12 +184,11 @@ import.data <-
     temp,
     temp.ind
   )
-
-      
+  
   if(nrow(temp)!=temp.ind[length(temp.ind)]){
     temp.ind.diff[(length(temp.ind.diff)+1)] <- nrow(temp)-temp.ind[length(temp.ind)] + 1
   } else {
-    temp.ind.diff[(length(temp.ind.diff)+1)] <- nrow(temp)- temp.ind[(length(temp.ind)-1)] + 1  
+    temp.ind.diff[(length(temp.ind.diff)+1)] <- nrow(temp)- temp.ind[(length(temp.ind)-1)]  
   }
   
   clean.data3 <- cbind(
@@ -238,6 +238,8 @@ import.data <-
   rm(data.a, data.b)
   
 
+
+
 ## Clean Up MRNs ==============================================================  
   # we need to do some minor housekeeping on the data.
   
@@ -256,15 +258,15 @@ import.data <-
   final$Cost <- round(final$Cost,2)
   
   # Reformats Date variable from character to date.
-  final$Date <- dmy(final$Date)
+  final$Date <- lubridate::dmy(final$Date)
   
   # Some of the MRNs are recognised as numbers and R formats them accordingly,
   # i.e. with decimal places. After some other conversions they become 
   # characters again, so we need to trim the decimals.
-  
+  condition <- str_detect(final$MRN,"//..*")==TRUE
   for(i in 1:nrow(final)){
-    if(str_detect(final[i,1],".0")==TRUE){
-      final[i,1] = str_split_fixed(final[i,1],".0",2)[1]
+    if(condition[i]){
+      final[i,1] = gsub("//..*","",final[i,1])
     }
   }
   
@@ -287,19 +289,27 @@ import.data <-
   final.Reversals <- final %>%
     filter(.,Cost<0)
   
+  setwd(file.path)
   write.csv(
     final,
-    "final.csv",
+    paste(Program,Period,"_Complete_Disp_Record.csv",sep = "_"),
     row.names = FALSE
     )
   write.csv(
     final.Dispensing,
-    "finalDispensing.csv",
+    paste(Program,Period,"Dispensing.csv",sep = "_"),
     row.names = FALSE
     )
   write.csv(
     final.Reversals,
-    "finalReversals.csv",
+    paste(Program, Period,"Reversals.csv",sep = "_"),
     row.names = FALSE
     )
-  rm()
+  
+  Unique.clients <- uniqueN(final.Dispensing$MRN)
+  Unique.scripts <- nrow(final.Dispensing)
+  Total.cost <- sum(final.Dispensing$Cost)
+  
+  Unique.clients
+  Unique.scripts
+  Total.cost
