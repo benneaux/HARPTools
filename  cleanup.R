@@ -1,8 +1,8 @@
-# Cleans up HBV Dispensing Report.
+# Cleans up HBV/HCV Dispensing Report.
 
 ## Setup =======================================================================
-
-req.packages <- c("dplyr","tidyr","data.table","readxl","stringr","lubridate")
+rm(list =ls())
+req.packages <- c("dplyr","tidyr","data.table","readxl","stringr","lubridate","stringi")
 
 lapply(
   req.packages,
@@ -11,17 +11,19 @@ lapply(
   quietly = TRUE
   )
 rm(req.packages)
-
+(.packages())
+list(ls())
 ## Import ====================================
 
-Program <- "HCV" # i.e. HBV or HCV
-Period <- "August" # i.e. Month, FY
+Program <- "HBV" # i.e. HBV or HCV
+Period_Num <- "09" # 01 for January etc.
+Period <- "September" # i.e. Month, FY - Make it the same as the file the data is stored in.
 
-# name of the file in quotes 
-#NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
-file.path <- "O:/HARP_Data/01 Reports/HCV/2016/HCV Treatment Dispensing/08 August/01 Data/" 
+# Name of the file in quotes 
+# NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
+file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2016/",Program," Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="") 
 
-file.name <- "HCV August 2016.XLS"
+file.name <- paste(Program,"Sept 2016.XLS")
 full.path <- paste(file.path,file.name, sep = "")
 
 import.data <- 
@@ -47,7 +49,7 @@ rm(file.name)
 
 
   junk.s <- 7 # the number at the start
-  junk.e <- 2 # the number at the end     
+  junk.e <- 1 # the number at the end     
       
   clean.data <- clean.data %>%
     slice(junk.s:(n()-junk.e))
@@ -68,6 +70,14 @@ rm(file.name)
     # Removes empty columns
     temp<- temp[,colSums(is.na(temp)) != nrow(temp)]
     
+    # Moves Reversal column to end if present
+    if(TRUE %in% str_detect(temp[,],"Reversal")){
+      rev <- which(str_detect(temp[,],"Reversal") == TRUE)
+      temp <- temp %>% 
+        select(-rev,everything())
+      temp[,length(temp)] <- gsub("Reversal","Yes",temp[,length(temp)])
+    }
+
     # Returns odd-numbered rows
     temp.a <- temp[ c(TRUE, FALSE), ]
     # Removes empty columns
@@ -79,8 +89,16 @@ rm(file.name)
     # Combines each odd-even pair into a single record.
     data.b <- as.data.frame(cbind(temp.a,temp.b))
     # Names columns
-    names(data.b) <- c("Prescriber","Units","Date","Cost","Code")
-    
+    if(length(data.b)==6){
+      names(data.b) <- c("Prescriber","Units","Date","Cost","Code","Reversal")
+      for(i in 1:nrow(data.b)){
+        if(is.na(data.b[i,length(data.b)])==TRUE){
+          data.b[i,length(data.b)] = ""
+        }
+      }
+    } else {
+      names(data.b) <- c("Prescriber","Units","Date","Cost","Code")
+    }
     # Removes unnescessary text from "Prescriber:"
     data.b[,"Prescriber"] <- gsub("Prescriber: ","",data.b[,"Prescriber"])
     # Removes unnescessary text from "Date:"
@@ -263,16 +281,34 @@ rm(file.name)
   # Some of the MRNs are recognised as numbers and R formats them accordingly,
   # i.e. with decimal places. After some other conversions they become 
   # characters again, so we need to trim the decimals.
-  condition <- str_detect(final$MRN,"//..*")==TRUE
+  
+  condition <- str_detect(final$MRN,"[.+]")==TRUE
   for(i in 1:nrow(final)){
     if(condition[i]){
-      final[i,1] = gsub("//..*","",final[i,1])
+      final[i,1] = gsub("\\..*","",final[i,1])
     }
   }
   
+  # Separate Codes and Names into separate columns
+  final$Site_Code <- str_split_fixed(
+    str_split_fixed(
+      final$Site,
+      " \\(",2)[,2],
+    "\\)"
+    ,2
+    )[,1]
+  final$Site <- str_split_fixed(final$Site," \\(",2)[,1]
+  
+  final$Cost_Centre_Code <- str_split_fixed(final$Cost_Centre,"\\: ",2)[,1]
+  final$Cost_Centre <- str_split_fixed(final$Cost_Centre,"\\: ",2)[,2]
+  
+  if("Reversal" %in% names(final)){
+    final <- select(final, 1:2,11,3,12,everything())
+  } else {
+    final <- select(final, 1:2,10,3,11,everything())
+  }
   # Remove unnescessary variables.
   rm(i)
-  
 
 ## Export Data =================================================================
   
