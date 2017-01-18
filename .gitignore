@@ -25,6 +25,7 @@ vignettes/*.pdf
 .Rproj.user
 Dispensing_HCV July 2016.XLS
 HBV July 2015_June 2016.XLS
+<<<<<<< HEAD
 final.csv
 finalDispensing.csv
 finalReversals.csv
@@ -32,3 +33,5 @@ Final_HBV_Dispensing_FY1516.csv
 Final_HBV_Dispensing_FY1516.xlsx
 TufteGraphics_files
 IB2016_039.pdf
+=======
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Cleans up HBV/HCV Dispensing Report.
 
 ## Setup =======================================================================
@@ -26,16 +27,35 @@ file.name <- "HBV December 2016.XLS"
 file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2016/",Program," Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="") 
 
 full.path <- paste(file.path,file.name, sep = "")
+=======
+require(dplyr)
+require(tidyr)
+require(data.table)
+require(readxl)
+require(reshape2)
+require(stringr)
+
+## Import ====================================
+
+file.name <- "Dispensing_HCV July 2016.XLS" # name of the file in quotes
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
 
 import.data <- 
   as.data.table(
     read_excel(
+<<<<<<< HEAD
       full.path,
+=======
+      file.name,
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
       col_names = FALSE,
       sheet = 1
       )
     )
+<<<<<<< HEAD
 rm(file.name)
+=======
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
 
 ## Setup ================================
 
@@ -43,6 +63,7 @@ rm(file.name)
   # junk rows there are a the start and 
   # end of the dataset.
 
+<<<<<<< HEAD
   # Create clean.data by removing blank rows.
     clean.data <- import.data[
       rowSums(is.na(import.data))# Calculates no. of NAs in each row 
@@ -116,12 +137,42 @@ rm(file.name)
     subset(select = 1)
   
   # Find the index of each row containing the string 'Site: ".  
+=======
+    junk.s <- 7 # the number at the start
+    junk.e <- 2 # the number at the end
+
+      clean.data <- import.data %>%
+        na.omit(.[,1]) %>%
+        slice(junk.s:(n()-junk.e))
+
+      temp <- clean.data %>%
+        subset(select = -1) %>%
+        filter(is.na(.[,1])== FALSE)
+
+      temp.a <- temp[ c(TRUE,FALSE), ] %>% subset(select = -3)
+      temp.b <- temp[ !c(TRUE,FALSE), ] %>% subset(select = -2)
+      data.b <- as.data.frame(cbind(temp.a,temp.b))
+      names(data.b) <- c("Units","Date","Cost","Code")
+  
+      rm(temp, temp.a, temp.b)
+
+## Filter Sites =====================
+  
+  data <- clean.data 
+  
+  temp <- data %>%
+    subset(select = 1) %>%
+    filter(is.na(.[,1])== FALSE)
+  
+    
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
   temp.ind <- which(
     str_detect(
       temp$X1,
       "Site: "
       )
     )
+<<<<<<< HEAD
   
   # Find the difference between each index and save into a 
   # vector of differences.
@@ -154,6 +205,26 @@ rm(file.name)
   # This merges the original data with another column of "Sites: ....", replicated
   # by the numbers in the diff vector.
   clean.data2 <- cbind(
+=======
+    
+    temp.ind.diff <- diff(
+      temp.ind,
+      lag=1
+      )
+    
+    temp.val <- slice(
+      temp,
+      temp.ind
+      )
+    
+    if(length(temp)<temp.ind[length(temp.ind)]){
+      temp.ind.diff[length(temp.ind.diff)+1] <- nrow(temp)-temp.ind[length(temp.ind)] + 1
+    } else {
+      temp.ind.diff[length(temp.ind.diff)+1] <- nrow(temp)-temp.ind[length(temp.ind)- 1] + 1  
+    }
+  
+  clean.data <- cbind(
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
     temp,
     rep(
       temp.val$X1,
@@ -161,6 +232,7 @@ rm(file.name)
       )
     )
   
+<<<<<<< HEAD
   # This removes the "Site: ..." rows from the original column vector, thus 
   # finally separating the site data into a separate (column) variable from the 
   # rest of the data.
@@ -182,6 +254,18 @@ rm(file.name)
   
   # Use the output from the previous section.
 
+=======
+  clean.data <- clean.data[-c(temp.ind),]
+
+  rm(data, temp, temp.val, temp.ind, temp.ind.diff)
+  
+## Filter Cost Centres ================================= 
+
+  # Use the output from the previous section.
+
+  
+  data <- clean.data
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
     
   temp <- data %>%
     subset(select = 1)
@@ -203,20 +287,30 @@ rm(file.name)
     temp,
     temp.ind
   )
+<<<<<<< HEAD
   
+=======
+
+      
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
   if(nrow(temp)!=temp.ind[length(temp.ind)]){
     temp.ind.diff[(length(temp.ind.diff)+1)] <- nrow(temp)-temp.ind[length(temp.ind)] + 1
   } else {
     temp.ind.diff[(length(temp.ind.diff)+1)] <- nrow(temp)- temp.ind[(length(temp.ind)-1)]  
   }
   
+<<<<<<< HEAD
   clean.data3 <- cbind(
+=======
+  clean.data <- cbind(
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
     data,
     rep(
       temp.val$X1,
       temp.ind.diff
     )
   )
+<<<<<<< HEAD
   clean.data3 <- clean.data3[-c(temp.ind),]
   
   # The data contains information on the dispensing setting that is not
@@ -350,3 +444,26 @@ rm(file.name)
   Unique.clients
   Unique.scripts
   Total.cost
+=======
+  clean.data <- clean.data[-c(temp.ind),]
+  
+  rm(data, temp, temp.val, temp.ind, temp.ind.diff)
+## Split the first column into MRNs and Drugs ============
+
+  data <- clean.data
+  
+  temp <- data %>%
+    subset(select = 1)
+  
+  temp.mrn <- temp[ c(TRUE,FALSE),]
+  temp.drg <- temp[ !c(TRUE,FALSE),]
+  temp.comb <- cbind(temp.mrn,temp.drg)
+  
+  data.a <- cbind(temp.comb, clean.data[,2:ncol(clean.data)])
+  names(data.a) <- c("MRN","Drug_Disp","Site","Cost_Centre")
+
+  rm(clean.data, data, import.data, temp, temp.comb, temp.mrn, temp.drg)
+## Concatenate both datasets
+  
+  final <- cbind(data.a, data.b)
+>>>>>>> 850d9c402d32bcc689951daa73a299419a272e84
