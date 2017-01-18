@@ -16,14 +16,15 @@ list(ls())
 ## Import ====================================
 
 Program <- "HBV" # i.e. HBV or HCV
-Period_Num <- "09" # 01 for January etc.
-Period <- "September" # i.e. Month, FY - Make it the same as the file the data is stored in.
-
+Period_Num <- "12" # 01 for January etc.
+Period <- "December" # i.e. Month, FY - Make it the same as the file the data is stored in.
+Year <- "2016"
+file.name <- "HBV December 2016.XLS"
 # Name of the file in quotes 
 # NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
+
 file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2016/",Program," Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="") 
 
-file.name <- paste(Program,"Sept 2016.XLS")
 full.path <- paste(file.path,file.name, sep = "")
 
 import.data <- 
@@ -48,7 +49,7 @@ rm(file.name)
       != ncol(import.data),] # Calculates number of columns present.
 
 
-  junk.s <- 7 # the number at the start
+  junk.s <- 6 # the number at the start
   junk.e <- 1 # the number at the end     
       
   clean.data <- clean.data %>%
@@ -315,7 +316,7 @@ rm(file.name)
   # This code exports the data to .csv files in the working directory.
   
   # Where the files will be saved
-  getwd()
+  file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2016/",Program," Treatment Dispensing/",Period_Num," ",Period,"/02 Analysis/",sep="")
   
   # All Dispensing
   final.Dispensing <- final %>%
@@ -328,7 +329,7 @@ rm(file.name)
   setwd(file.path)
   write.csv(
     final,
-    paste(Program,Period,"_Complete_Disp_Record.csv",sep = "_"),
+    paste0(Program,"_Complete_Dispensing_",Period,"_",Year,".csv"),
     row.names = FALSE
     )
   write.csv(

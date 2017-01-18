@@ -16,14 +16,14 @@ list(ls())
 ## Import ====================================
 
 Program <- "HIV" 
-Qtr_Num <- "03" # 01 for January - March etc.
-Period <- "Jul-Sep" # i.e. Month, FY - Make it the same as the file the data is stored in.
+Qtr_Num <- "04" # 01 for January - March etc.
+Period <- "Oct-Dec" # i.e. Month, FY - Make it the same as the file the data is stored in.
 
 # Name of the file in quotes 
 # NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
 file.path <- paste("O:/HARP_Data/01 Reports/HIVSTI/2016/",Program," Treatment Dispensing/",Qtr_Num," ",Period,"/01 Data/",sep="") 
 
-file.name <- paste("HIV July_Sept 2016.xls")
+file.name <- paste("HIV dispensing October_December.xls")
 full.path <- paste(file.path,file.name, sep = "")
 scratch.path <- "O:/HARP_Data/01 Reports/Scratch/"
 
@@ -54,9 +54,9 @@ junk.e <- 2 # the number at the end
 
 clean.data <- clean.data %>%
   slice(junk.s:(n()-junk.e))
-clean.data[,4] <- ""
+clean.data <- subset(clean.data, select = -3)
 
-names(clean.data) <- c("MRN","Disp_Date","PBS_Code","Notes")
+names(clean.data) <- c("MRN","Prescriber","Disp_Date","PBS_Code")
 ## Clean Up MRNs ==============================================================  
 # we need to do some minor housekeeping on the data.
 

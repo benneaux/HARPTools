@@ -30,10 +30,6 @@ HIVTestingData <- function(startdate, enddate) {
   Min(tblHIVPOCT.HIVWhereTestedLocation) AS HIVWhereTestedLocation, 
   Min(tblHIVPOCT.HIVTestWantedToday) AS HIVTestWantedToday, 
   Min(tblHIVPOCT.SexWithPartnerType) AS SexWithPartnerType, 
-  Min(tblHIVPOCT.SWEver) AS SWEver, 
-  Min(tblHIVPOCT.SWLast) AS SWLast, 
-  Min(tblHIVPOCT.IDUEver) AS IDUEver, 
-  Min(tblHIVPOCT.IDULast) AS IDULast, 
   Min(tblHIVPOCT.PartnersMaleLast3) AS PartnersMaleLast3, 
   Min(tblHIVPOCT.PartnersMaleLast12) AS PartnersMaleLast12, 
   Min(tblHIVPOCT.PartnersFemaleLast3) AS PartnersFemaleLast3, 
@@ -102,12 +98,19 @@ HIVTestingData <- function(startdate, enddate) {
   data$Sex <- str_to_upper(data$Sex)
   data$Partners <- str_to_upper(data$Partners)
   data$PartnersLast <- str_to_upper(data$PartnersLast)
-  data_lab <- subset(data,LabGroupCode==12)
-  data_poct <- subset(data,LabGroupCode==96)
+
+  data[is.na(data$SW),"SW"] <- 9
+  # data[data$SW == 2, "SW"] <- 3
+  # data[data$SW == 1, "SW"] <- 2
+  # data <- within(data, SW[SWLast == 1] <- 1)
+  # data <- within(data, SW[SWLast == 3] <- 1)
+  
+  
+  
+  data_lab <<- subset(data,LabGroupCode==12)
+  data_poct <<- subset(data,LabGroupCode==96)
   data_poct_male <- subset(data_poct,Sex=="M")
   data_poct_msm <- subset(data_poct,Sex=="M" & {PartnersLast=="S" | PartnersLast=="B"})
-  
-  
   # LabTest====
     ## Age====
   
@@ -254,40 +257,40 @@ HIVTestingData <- function(startdate, enddate) {
     
     ## Risk====
     lab_risk_1 <- c(
-      nrow(subset(data_lab, Partners == "O" & Sex=="M")),
-      nrow(subset(data_lab, Partners == "O"& Sex=="F")),
-      nrow(subset(data_lab, Partners == "O")),
-      nrow(subset(data_lab, Partners == "O" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "O"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "O" & Colour == 12)))
+      nrow(subset(data_lab, PartnersLast== "O" & Sex=="M")),
+      nrow(subset(data_lab, PartnersLast== "O"& Sex=="F")),
+      nrow(subset(data_lab, PartnersLast== "O")),
+      nrow(subset(data_lab, PartnersLast== "O" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "O"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "O" & Colour == 12)))
     lab_risk_2 <- c(
-      nrow(subset(data_lab, Partners == "B" & Sex=="M")),
-      nrow(subset(data_lab, Partners == "B"& Sex=="F")),
-      nrow(subset(data_lab, Partners == "B")),
-      nrow(subset(data_lab, Partners == "B" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "B"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "B" & Colour == 12)))
+      nrow(subset(data_lab, PartnersLast== "B" & Sex=="M")),
+      nrow(subset(data_lab, PartnersLast== "B"& Sex=="F")),
+      nrow(subset(data_lab, PartnersLast== "B")),
+      nrow(subset(data_lab, PartnersLast== "B" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "B"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "B" & Colour == 12)))
     lab_risk_3 <- c(
-      nrow(subset(data_lab, Partners == "S" & Sex=="M")),
-      nrow(subset(data_lab, Partners == "S"& Sex=="F")),
-      nrow(subset(data_lab, Partners == "S")),
-      nrow(subset(data_lab, Partners == "S" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "S"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "S" & Colour == 12)))
+      nrow(subset(data_lab, PartnersLast== "S" & Sex=="M")),
+      nrow(subset(data_lab, PartnersLast== "S"& Sex=="F")),
+      nrow(subset(data_lab, PartnersLast== "S")),
+      nrow(subset(data_lab, PartnersLast== "S" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "S"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "S" & Colour == 12)))
     lab_risk_4 <- c(
-      nrow(subset(data_lab, Partners == "N" & Sex=="M")),
-      nrow(subset(data_lab, Partners == "N"& Sex=="F")),
-      nrow(subset(data_lab, Partners == "N")),
-      nrow(subset(data_lab, Partners == "N" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "N"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_lab, Partners == "N" & Colour == 12)))
+      nrow(subset(data_lab, PartnersLast== "N" & Sex=="M")),
+      nrow(subset(data_lab, PartnersLast== "N"& Sex=="F")),
+      nrow(subset(data_lab, PartnersLast== "N")),
+      nrow(subset(data_lab, PartnersLast== "N" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "N"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_lab, PartnersLast== "N" & Colour == 12)))
     lab_risk_5 <- c(
-      nrow(subset(data_lab, is.na(Partners) & Sex=="M")),
-      nrow(subset(data_lab, is.na(Partners) & Sex=="F")),
-      nrow(subset(data_lab, is.na(Partners))),
-      nrow(subset(data_lab, is.na(Partners) & Sex=="M" & Colour == 12)),
-      nrow(subset(data_lab, is.na(Partners) & Sex=="F" & Colour == 12)),
-      nrow(subset(data_lab, is.na(Partners) & Colour == 12)))
+      nrow(subset(data_lab, is.na(PartnersLast) & Sex=="M")),
+      nrow(subset(data_lab, is.na(PartnersLast) & Sex=="F")),
+      nrow(subset(data_lab, is.na(PartnersLast))),
+      nrow(subset(data_lab, is.na(PartnersLast) & Sex=="M" & Colour == 12)),
+      nrow(subset(data_lab, is.na(PartnersLast) & Sex=="F" & Colour == 12)),
+      nrow(subset(data_lab, is.na(PartnersLast) & Colour == 12)))
     
     lab_risk <<- rbind(lab_risk_1,lab_risk_2,lab_risk_3,lab_risk_4,lab_risk_5)
     rm(lab_risk_1,lab_risk_2,lab_risk_3,lab_risk_4,lab_risk_5)
@@ -450,33 +453,33 @@ HIVTestingData <- function(startdate, enddate) {
     
     ## Risk====
     poct_risk_1 <- c(
-      nrow(subset(data_poct, Partners == "O" & Sex=="M")),
-      nrow(subset(data_poct, Partners == "O"& Sex=="F")),
-      nrow(subset(data_poct, Partners == "O")),
-      nrow(subset(data_poct, Partners == "O" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "O"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "O" & Colour == 12)))
+      nrow(subset(data_poct, PartnersLast== "O" & Sex=="M")),
+      nrow(subset(data_poct, PartnersLast== "O"& Sex=="F")),
+      nrow(subset(data_poct, PartnersLast== "O")),
+      nrow(subset(data_poct, PartnersLast== "O" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "O"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "O" & Colour == 12)))
     poct_risk_2 <- c(
-      nrow(subset(data_poct, Partners == "B" & Sex=="M")),
-      nrow(subset(data_poct, Partners == "B"& Sex=="F")),
-      nrow(subset(data_poct, Partners == "B")),
-      nrow(subset(data_poct, Partners == "B" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "B"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "B" & Colour == 12)))
+      nrow(subset(data_poct, PartnersLast== "B" & Sex=="M")),
+      nrow(subset(data_poct, PartnersLast== "B"& Sex=="F")),
+      nrow(subset(data_poct, PartnersLast== "B")),
+      nrow(subset(data_poct, PartnersLast== "B" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "B"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "B" & Colour == 12)))
     poct_risk_3 <- c(
-      nrow(subset(data_poct, Partners == "S" & Sex=="M")),
-      nrow(subset(data_poct, Partners == "S"& Sex=="F")),
-      nrow(subset(data_poct, Partners == "S")),
-      nrow(subset(data_poct, Partners == "S" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "S"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "S" & Colour == 12)))
+      nrow(subset(data_poct, PartnersLast== "S" & Sex=="M")),
+      nrow(subset(data_poct, PartnersLast== "S"& Sex=="F")),
+      nrow(subset(data_poct, PartnersLast== "S")),
+      nrow(subset(data_poct, PartnersLast== "S" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "S"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "S" & Colour == 12)))
     poct_risk_4 <- c(
-      nrow(subset(data_poct, Partners == "N" & Sex=="M")),
-      nrow(subset(data_poct, Partners == "N"& Sex=="F")),
-      nrow(subset(data_poct, Partners == "N")),
-      nrow(subset(data_poct, Partners == "N" & Sex=="M" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "N"& Sex=="F" & Colour == 12)),
-      nrow(subset(data_poct, Partners == "N" & Colour == 12)))
+      nrow(subset(data_poct, PartnersLast== "N" & Sex=="M")),
+      nrow(subset(data_poct, PartnersLast== "N"& Sex=="F")),
+      nrow(subset(data_poct, PartnersLast== "N")),
+      nrow(subset(data_poct, PartnersLast== "N" & Sex=="M" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "N"& Sex=="F" & Colour == 12)),
+      nrow(subset(data_poct, PartnersLast== "N" & Colour == 12)))
     poct_risk_5 <- c(
       nrow(subset(data_poct, is.na(Partners) & Sex=="M")),
       nrow(subset(data_poct, is.na(Partners) & Sex=="F")),
@@ -553,7 +556,7 @@ HIVTestingData <- function(startdate, enddate) {
       nrow(subset(data_poct_msm, PartnersMaleLast3 > 5)),
       nrow(subset(data_poct_msm, PartnersMaleLast3 > 5 & Colour==12))) 
     
-    poct_partners <<- rbind(poct_partners_1,poct_partners_2)
+    poct_partners<<- rbind(poct_partners_1,poct_partners_2)
     rm(poct_partners_1,poct_partners_2)
     
     ## Testing History====

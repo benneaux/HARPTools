@@ -13,11 +13,11 @@ rm(req.packages)
 
 ## Import ====================================
 
-Program <- "HCV" # i.e. HBV or HCV
+Program <- "HBV" # i.e. HBV or HCV
 Type <- "Purchasing"
-Period_Num <- "09" # 01 for January etc.
-Period <- "September" # i.e. Month, FY
-Drug <- "Daclatasvir"
+Period_Num <- "12" # 01 for January etc.
+Period <- "December" # i.e. Month, FY
+Drug <- "Tenofovir"
 Drug_rem_spec_chars <- Drug %>% 
   str_replace_all(" ","_") %>%
   str_replace_all("&","and")
@@ -25,7 +25,7 @@ Drug_rem_spec_chars <- Drug %>%
 # name of the file in quotes 
 #NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
 file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2016/",Program," Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="")
-file.name <- paste(Type,Drug,"Sept 2016.XLS")
+file.name <- paste(Drug,"purchasing", Period,"2016.XLS")
 full.path <- paste(file.path,file.name, sep = "")
 
 import.data <- 
