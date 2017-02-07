@@ -19,10 +19,6 @@ HIVTestingData <- function(startdate, enddate) {
   Min(tblCodeColours.Priority) AS Priority, 
   FLOOR((CONVERT(int, [DOB])-CONVERT(int,tblInvestigationsRequest.[VisitDate]))/-365.25) AS Age, 
   tblCodeLabGroup.LabGroupCode,
-  tblVisit.SWLast, 
-  tblVisit.IDULast, 
-  tblVisit.PartnersLast, 
-  tblVisit.Condoms, 
   tblHIVPOCT.HIVEverTested, 
   tblHIVPOCT.HIVLastTested, 
   Min(tblHIVPOCT.HIVLastTestType) AS HIVLastTestType, 
@@ -43,53 +39,60 @@ HIVTestingData <- function(startdate, enddate) {
   Min(tblHIVPOCT.HepBVacc) AS HepBVacc, 
   Min(tblHIVPOCT.SyphilisDiag) AS SyphilisDiag" 
                   
-  query_from <- "FROM (tblVisit 
-  INNER JOIN (((((((tblInvestigationsRequest 
-  LEFT JOIN tblResultLab ON (tblInvestigationsRequest.LabGroupCode = tblResultLab.[Group]) 
-  AND (tblInvestigationsRequest.VisitDate = tblResultLab.VisitDate) 
-  AND (tblInvestigationsRequest.URNO = tblResultLab.URNO)) 
+  query_from <- "FROM (((((((tblInvestigationsRequest LEFT JOIN tblResultLab ON (tblInvestigationsRequest.URNO = tblResultLab.URNO) AND (tblInvestigationsRequest.VisitDate = tblResultLab.VisitDate) AND (tblInvestigationsRequest.LabGroupCode = tblResultLab.[Group])) 
   LEFT JOIN tblCodeLabResult ON tblResultLab.ResultCode = tblCodeLabResult.Code) 
-  LEFT JOIN tblCodeLabTest ON tblResultLab.Test = tblCodeLabTest.TestCode) 
+  LEFT JOIN tblCodeLabTest ON tblResultLab.Test = tblCodeLabTest.TestCode)
   INNER JOIN tblClient ON tblInvestigationsRequest.URNO = tblClient.URNO) 
   INNER JOIN tblCodeClinic ON tblClient.Clinic = tblCodeClinic.ClinicNumber) 
   LEFT JOIN tblCodeColours ON tblCodeLabResult.Colour = tblCodeColours.ColourCode) 
-  INNER JOIN tblCodeLabGroup ON tblInvestigationsRequest.LabGroupCode = tblCodeLabGroup.LabGroupCode) ON (tblInvestigationsRequest.VisitType = tblVisit.VisitType) 
-  AND (tblInvestigationsRequest.VisitDate = tblVisit.VisitDate) 
-  AND (tblVisit.URNO = tblInvestigationsRequest.URNO)) 
-  LEFT JOIN tblHIVPOCT ON (tblInvestigationsRequest.URNO = tblHIVPOCT.URNO) 
-  AND (tblInvestigationsRequest.VisitDate = tblHIVPOCT.VisitDate)"
+  INNER JOIN tblCodeLabGroup ON tblInvestigationsRequest.LabGroupCode = tblCodeLabGroup.LabGroupCode) 
+  LEFT JOIN tblHIVPOCT ON (tblInvestigationsRequest.VisitDate = tblHIVPOCT.VisitDate) AND (tblInvestigationsRequest.URNO = tblHIVPOCT.URNO)"
   
   query_groupby <- "GROUP BY tblInvestigationsRequest.URNO, 
-  tblClient.Clinic, 
-  tblCodeClinic.CentreCode,
-  tblClient.Sex,
-  tblClient.DOB, 
-  tblClient.Indigenous, 
-  tblClient.SW, 
-  tblClient.IDU, 
-  tblClient.Partners, 
-  tblInvestigationsRequest.VisitDate, 
-  FLOOR((CONVERT(int, [DOB])-CONVERT(int,tblInvestigationsRequest.[VisitDate]))/-365.25), 
+  tblClient.Clinic,
+  tblCodeClinic.CentreCode, 
+  tblClient.Sex, tblClient.DOB, 
+  tblClient.Indigenous, tblClient.SW, 
+  tblClient.IDU, tblClient.Partners, 
+  tblInvestigationsRequest.VisitDate,
   tblCodeLabGroup.LabGroupCode,
-  tblVisit.SWLast, 
-  tblVisit.IDULast,
-  tblVisit.PartnersLast, 
-  tblVisit.Condoms, 
-  tblHIVPOCT.HIVEverTested, 
-  tblHIVPOCT.HIVLastTested"
+  tblHIVPOCT.HIVEverTested,
+  tblHIVPOCT.HIVLastTested,
+  FLOOR((CONVERT(int, [DOB])-CONVERT(int,tblInvestigationsRequest.[VisitDate]))/-365.25)"
   
-  query_having <- paste("HAVING (tblInvestigationsRequest.VisitDate BETWEEN", startdate, "AND", enddate,") 
+  query_having <- paste("HAVING (tblInvestigationsRequest.[VisitDate] BETWEEN", startdate, "AND", enddate,") 
   AND (tblCodeLabGroup.LabGroupCode = 12) 
-  OR (tblInvestigationsRequest.VisitDate BETWEEN", startdate, "AND", enddate,") 
+  OR (tblInvestigationsRequest.[VisitDate] BETWEEN", startdate, "AND", enddate,") 
   AND (tblCodeLabGroup.LabGroupCode = 96)",sep=" ")
-   
   
+  testquery <- paste(query_select,query_from, query_groupby,query_having, ";",sep = " ") 
+  
+  query_select <- "SELECT tblVisit.URNO, 
+  tblVisit.VisitDate,
+  tblVisit.SWLast,
+  tblVisit.IDULast,
+  tblVisit.PartnersLast,
+  tblVisit.Condoms" 
+                  
+  query_from <- "FROM  tblVisit"
+  
+  query_groupby <- "GROUP BY tblVisit.URNO,
+  tblVisit.VisitDate,
+  tblVisit.SWLast,
+  tblVisit.IDULast,
+  tblVisit.PartnersLast,
+  tblVisit.Condoms"
+  
+  query_having <- paste("HAVING (tblVisit.VisitDate BETWEEN", startdate, "AND", enddate,")")
+  
+  visitquery <- paste(query_select,query_from, query_groupby,query_having, ";",sep = " ")
   
   # SQL====
 
   conn <- odbcConnect("SHIPHNE")
-  query <- paste(query_select,query_from, query_groupby,query_having, ";",sep = " ")
-  data <- as.data.frame(sqlQuery(conn,query))
+
+  data <- as.data.frame(sqlQuery(conn,testquery))
+  visitdata <- as.data.frame(sqlQuery(conn, visitquery))
   odbcCloseAll()
   
   rm(query,query_from,query_groupby,query_having,query_select,startdate,enddate)
@@ -97,15 +100,64 @@ HIVTestingData <- function(startdate, enddate) {
   # Calculations====
   data$Sex <- str_to_upper(data$Sex)
   data$Partners <- str_to_upper(data$Partners)
-  data$PartnersLast <- str_to_upper(data$PartnersLast)
+  visitdata$PartnersLast <- str_to_upper(visitdata$PartnersLast)
 
+  visitvector <- visitdata$URNO %in% data$URNO
+  visitdata <- visitdata[visitvector,]
+  
+  # Update SW Last ====
   data[is.na(data$SW),"SW"] <- 9
-  # data[data$SW == 2, "SW"] <- 3
-  # data[data$SW == 1, "SW"] <- 2
-  # data <- within(data, SW[SWLast == 1] <- 1)
-  # data <- within(data, SW[SWLast == 3] <- 1)
+  data[data$SW == 2, "SW"] <- 3
+  data[data$SW == 1, "SW"] <- 2
+  swdata <- data.table(URNO = sort(na.exclude(
+    unique(
+      visitdata[visitdata$SWLast == 1 | visitdata$SWLast == 3,"URNO"]
+      )
+    ))
+  )
+  
+  data <- within(data, SW[data$URNO %in% swdata$URNO] <- 1)
+  
+  # Update PartnersLast ====
+  
+  data$Partners <- "U"
+  pldataN <- data.table(URNO = sort(na.exclude(
+    unique(
+      visitdata[visitdata$PartnersLast == "N","URNO"]
+    )
+  ))
+  )
+  pldataO <- data.table(URNO = sort(na.exclude(
+    unique(
+      visitdata[visitdata$PartnersLast == "O","URNO"]
+    )
+  ))
+  )
+  pldataS <- data.table(URNO = sort(na.exclude(
+    unique(
+      visitdata[visitdata$PartnersLast == "S","URNO"]
+    )
+  ))
+  )
+  pldataB <- data.table(URNO = sort(na.exclude(
+    unique(
+      visitdata[visitdata$PartnersLast == "B","URNO"]
+    )
+  ))
+  )
+  
+  pldata <- data.table(URNO = sort(na.exclude(
+    unique(
+      visitdata[,"URNO"]
+    )
+  ))
+  )
   
   
+  data <- within(data, Partners[data$URNO %in% pldataN$URNO] <- "N")
+  data <- within(data, Partners[data$URNO %in% pldataO$URNO] <- "O")
+  data <- within(data, Partners[data$URNO %in% pldataS$URNO] <- "S")
+  data <- within(data, Partners[data$URNO %in% pldataB$URNO] <- "B")
   
   data_lab <<- subset(data,LabGroupCode==12)
   data_poct <<- subset(data,LabGroupCode==96)

@@ -13,22 +13,21 @@ rm(req.packages)
 
 ## Import ====================================
 
-Program <- "HBV" # i.e. HBV or HCV
+Program <- "HCV" # i.e. HBV or HCV
 Type <- "Purchasing"
-Period_Num <- "12" # 01 for January etc.
-Period <- "December" # i.e. Month, FY
-Year <- "2016"
+Period_Num <- "01" # 01 for January etc.
+Period <- "January" # i.e. Month, FY
+Year <- "2017"
 # name of the file in quotes 
 #NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
-file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2016/",Program," Treatment Dispensing/",Period_Num," ",Period,"/02 Analysis/",sep="")
+file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2017/",Program," Treatment Dispensing/",Period_Num," ",Period,"/02 Analysis/",sep="")
 file.name <- paste(Program,"Combined",Type,Period,Year,sep = "_")
 full.path <- paste(file.path,file.name, sep = "")
 
 data <- rbind(
-  Lamivudine,
-  Tenofovir,
-  Adefovir,
-  Entecavir
+  Daclatasvir,
+  Interferon,
+  Sofosbuvir
   )
 
 setwd(file.path)
