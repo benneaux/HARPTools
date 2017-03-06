@@ -1,4 +1,5 @@
 require(RODBC)
+require(dplyr)
 channel <- odbcConnect("SHIPHNE")
 
 
@@ -15,3 +16,5 @@ sms <- mutate(
   sms, 
   SMS_Month = lubridate::month(SMS_Date),
   SMS_Year = lubridate::year(SMS_Date))
+
+

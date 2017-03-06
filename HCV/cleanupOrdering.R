@@ -1,5 +1,7 @@
-# Cleans up HBV Dispensing Report.
-
+# Cleans up HCV Ordering Report.
+rm(list =ls())
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("functions.r")
 ## Setup =======================================================================
 req.packages <- c("dplyr","tidyr","data.table","readxl","stringr","lubridate")
 
@@ -15,28 +17,33 @@ rm(req.packages)
 
 Program <- "HCV" # i.e. HBV or HCV
 Type <- "Purchasing"
-Period_Num <- "01" # 01 for January etc.
-Period <- "January" # i.e. Month, FY
-Drug <- "Daclatasvir"
-Drug_rem_spec_chars <- Drug %>% 
-  str_replace_all(" ","_") %>%
-  str_replace_all("&","and")
+Period_Num <- "02" # 01 for January etc.
+Year <- "2017"
+Period <- num2month(Period_Num)
+PeriodAbbr <- num2month(Period_Num, TRUE)# i.e. Month, FY
+file.path <- paste("O:/HARP_Data/01 Reports/HCV/",Year,"/","HCV Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="") 
+files <- tibble::as_tibble(base::list.files(file.path, pattern = ".XLS"))
+file.names <- dplyr::filter(files, !grepl('HEP|HEPC|HCV', value))
+combined <- NULL
 
-# name of the file in quotes 
-#NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
-file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/2017/",Program," Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="")
-file.name <- paste(Drug,"purchasing", Period,"2017.XLS")
-full.path <- paste(file.path,file.name, sep = "")
+for(i in 1:nrow(file.names)){
+  
+  
+  Drug <- file.names$value[i]
+  Drug_rem_spec_chars <- Drug %>% 
+    str_replace_all("[p]urchasing","") %>%
+    str_replace_all("&","and") %>%
+    str_replace_all(Period,"") %>%
+    str_replace_all(PeriodAbbr,"") %>%
+    str_replace_all(Year,"") %>%
+    str_replace_all(".XLS","") %>%
+    str_replace_all("_","") %>%
+    str_trim(side = "both")
 
-import.data <- 
-  as.data.table(
-    read_excel(
-      full.path,
-      col_names = FALSE,
-      sheet = 1
-    )
-  )
-rm(file.name)
+  file.name <- paste(Drug)
+  full.path <- paste(file.path,file.name, sep = "")
+  report.path <- paste("O:/HARP_Data/01 Reports/HCV/",Year,"/","HCV Treatment Dispensing/",Period_Num," ",Period,"/02 Analysis/",sep="")
+  import.data <- importdata(full.path) 
 
 ## Setup ================================
 
@@ -51,7 +58,7 @@ clean.data <- import.data[
 
 
 junk.s <- 5 # the number at the start
-junk.e <- 2 # the number at the end     
+junk.e <- 1 # the number at the end     
 
 clean.data <- clean.data %>%
   slice(junk.s:(n()-junk.e))
@@ -325,13 +332,37 @@ names(data.a) <- c("Date","Drug","Supplier","Hospital", "OrderNo")
 final.data <- cbind(data.a,data.b)
 final.data <- final.data[,c(4,2,1,6,7,8,9,3,5)]
 
-setwd(file.path)
 write.csv(
   final.data,
-  paste(Program,Period,Type,Drug_rem_spec_chars,".csv",sep = "_"),
+  paste0(report.path, 
+         paste(Program,
+               Period,
+               Year,
+               Type,
+               Drug_rem_spec_chars,
+               sep = "_"),
+         ".csv"),
   row.names = FALSE
 )
 
-assign(Drug_rem_spec_chars,final.data)
+assign(Drug_rem_spec_chars,
+       final.data)
+combined <- rbind(combined,
+                  final.data)
+}
 
+file.name <- paste0(report.path, 
+                    paste(Program,
+                          Period,
+                          Year,
+                          Type,
+                          "Combined",
+                          sep = "_"),
+                    ".csv")
 
+write.csv(
+  combined,
+  file.name,
+  row.names = FALSE
+)
+rm(list = ls())

@@ -1,7 +1,8 @@
-# Cleans up HBV/HCV Dispensing Report.
-
-## Setup =======================================================================
+# Cleans up HCV Dispensing Report.
 rm(list =ls())
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+source("functions.r")
+## Setup =======================================================================
 req.packages <- c("dplyr","tidyr","data.table","readxl","stringr","lubridate","stringi")
 
 lapply(
@@ -16,27 +17,19 @@ list(ls())
 ## Import ====================================
 
 Program <- "HCV" # i.e. HBV or HCV
-Period_Num <- "01" # 01 for January etc.
-Period <- "January" # i.e. Month, FY - Make it the same as the file the data is stored in.
+Period_Num <- "02" # 01 for January etc.
+Period <- num2month(Period_Num) # i.e. Month, FY - Make it the same as the file the data is stored in.
 Year <- "2017"
-file.name <- "HCV_January 2017.XLS"
-# Name of the file in quotes 
-# NOTE: REPLACE EACH BACKSLASH (\) WITH A FORWARD SLASH (/)!!!!
+file.path <- paste("O:/HARP_Data/01 Reports/HCV/",Year,"/","HCV Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="") 
+files <- tibble::as_tibble(list.files(file.path, pattern = ".XLS"))
+file.name <- dplyr::filter(files, grepl('HEP|HEPC|HCV', value))
 
-file.path <- paste("O:/HARP_Data/01 Reports/",Program,"/",Year,"/",Program," Treatment Dispensing/",Period_Num," ",Period,"/01 Data/",sep="") 
 # Where the files will be saved
 report.path <- paste("O:/HARP_Data/01 Reports/",Program,"/",Year,"/",Program," Treatment Dispensing/",Period_Num," ",Period,"/02 Analysis/",sep="")
+
 full.path <- paste(file.path,file.name, sep = "")
 
-import.data <- 
-  as.data.table(
-    read_excel(
-      full.path,
-      col_names = FALSE,
-      sheet = 1
-    )
-  )
-rm(file.name)
+import.data <- importdata(full.path)
 
 ## Setup ================================
 
@@ -50,8 +43,8 @@ clean.data <- import.data[
   != ncol(import.data),] # Calculates number of columns present.
 
 
-junk.s <- 6 # the number at the start
-junk.e <- 1 # the number at the end     
+junk.s <- 7 # the number at the start
+junk.e <- 2 # the number at the end     
 
 clean.data <- clean.data %>%
   slice(junk.s:(n()-junk.e))
