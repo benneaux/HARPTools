@@ -12,7 +12,7 @@ FROM (tblInvestigations
     ON tblClient.Clinic = tblCodeClinic.ClinicNumber 
 WHERE (((tblClient.Indigenous) In (1,2,3)) AND ((tblCodeClinic.Sector)=2))
 GROUP BY tblVisit.URNO, tblVisit.VisitDate, tblInvestigations.VisitNumber, tblInvestigations.VisitType
-HAVING tblVisit.VisitDate <", enddate),";")
+HAVING tblVisit.VisitDate <=", enddate),";")
 
 
 conn <- RODBC::odbcConnect("SHIPHNE")
