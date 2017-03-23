@@ -11,3 +11,8 @@ HIVTestsMSMquarterchart <- yearqtrplot(HIVTestsMSMquarter,
                                         "n",
                                         "ACON HIV Tests per Quarter (MSM)",
                                         "HIV Tests (#)")
+
+grid::grid.draw(clientsquarterchart,recording = TRUE)
+dev.off()
+grid::grid.draw(HIVTestsMSMquarterchart)
+dev.off()
