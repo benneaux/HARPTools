@@ -1,7 +1,5 @@
 library(tidyverse)
 
-startdate <- as.Date("2016/10/01")
-enddate <- as.Date("2016/12/31")
 
 countrycodes <- select(countrycodes, c(1:3))
 
@@ -51,7 +49,7 @@ comb_data <- inner_join(client_data,service_data, by ="URNO") %>%
                               .$VisitAge < 60 ~ "55-59 years",
                               .$VisitAge < 65 ~ "60-64 years")) %>%
   mutate(VHS = case_when(.$MRN %in% VHS_1st_screen_data$HNE_MRN ~ 1)) %>%
-  #filter(is.na(VHS)) %>%
+  filter(is.na(VHS)) %>%
   select(-c(VHS))
 
 screening_data <- comb_data %>%

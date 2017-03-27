@@ -1,4 +1,4 @@
-enddate <- "'02/28/2017'"
+
 library(RODBC)
 ## ---- my-label ----
 
@@ -11,10 +11,9 @@ query <- paste("SELECT tblVisit.URNO, tblVisit.VisitDate, tblClient.Sex, tblClie
                 AND (tblInvestigationsRequest.URNO = tblVisit.URNO)) 
                   ON tblClient.URNO = tblVisit.URNO
            WHERE (((tblVisit.VisitDate) Between 42004 AND",enddate,") 
-           AND ((tblInvestigationsRequest.LabGroupCode) In (12,96)) 
            AND ((tblVisit.Clinic)=2));")
                                    
-
+#           AND ((tblInvestigationsRequest.LabGroupCode) In (12,96)) 
 conn <- odbcConnect("SHIPHNE")
 
 data <- as.data.frame(sqlQuery(conn,query))

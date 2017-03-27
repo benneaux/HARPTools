@@ -4,7 +4,7 @@ library(knitr) # spin
 library(rmarkdown) # render
 library(dplyr) # %>%
 library(stringi)
-enddate <- "'12/31/2016'" # must be in mm/dd/yyyy
+enddate <- "'03/27/2017'" # must be in mm/dd/yyyy
 
 spin("ACONReport.R", 
      knit = FALSE, 
@@ -14,5 +14,5 @@ spin("ACONReport.R",
 
 render("ACONReport.Rmd", clean = TRUE, quiet = TRUE)
 
-write.csv(tbldata, "ACONReportData.csv")
+#write.csv(tbldata, "ACONReportData.csv")
 rm(list = ls())

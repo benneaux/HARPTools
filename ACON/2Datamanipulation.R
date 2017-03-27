@@ -27,6 +27,7 @@ reportdata <- data %>%
                              quarter(.$VisitDate) == 2 ~ "Q2",
                              quarter(.$VisitDate) == 3 ~ "Q3",
                              quarter(.$VisitDate) == 4 ~ "Q4")) %>%
+  mutate(Quarter = as.ordered(as.factor(.$Quarter))) %>%
   mutate(Month = lubridate::month(.$VisitDate, label = TRUE))
 
 #rm(data)
